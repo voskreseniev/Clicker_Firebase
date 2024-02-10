@@ -21,8 +21,20 @@
     <h2>Добро пожаловать, <span id="username"></span>!</h2>    <button onclick="logout()">Выйти</button>
     <p>Монет: <span id="score">0</span></p>
     <p>Кликай в любом месте чтобы получать монеты :) </p>
+<!-- Добавьте следующий блок кода перед закрывающим тегом </div> для #game-container -->
+<div id="shop-container">
+  <h2>Магазин улучшений</h2>
+  <ul id="upgrade-list">
+   <!-- Обновленный HTML для магазина с добавлением id для элемента улучшения 1 -->
+<li id="upgrade1-item"><span id="upgrade1-name">Улучшение 1</span> - <span id="upgrade1-cost">100</span> монет <button onclick="buyUpgrade(1)">Купить</button></li>
+
+    <li><span id="upgrade2-name">Улучшение 2</span> - <span id="upgrade2-cost">20000</span> монет <button onclick="buyUpgrade(2)">Купить</button></li>
+    <!-- Добавьте другие улучшения здесь -->
+  </ul>
+</div>
 
   </div>
+  
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
