@@ -1,0 +1,2 @@
+// Инициализация Firebase
+const firebaseConfig = {apiKey:"AIzaSyA6fMICLzu8pJ881pkHMuXTAQL6DY7i3sU",authDomain:"testproject-20e11.firebaseapp.com",databaseURL:"https://testproject-20e11-default-rtdb.europe-west1.firebasedatabase.app",projectId:"testproject-20e11",storageBucket:"testproject-20e11.appspot.com",messagingSenderId:"683647709233",appId:"1:683647709233:web:1d195c7891fbe1eed06510"};firebase.initializeApp(firebaseConfig);
