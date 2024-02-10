@@ -170,14 +170,12 @@ function openUsernameEdit() {
   input.type = 'text';
   input.value = currentDisplayName;
   input.classList.add('editable-input');
-  input.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-      const newDisplayName = input.value.trim();
-      if (newDisplayName !== '') {
-        setUserDisplayName(newDisplayName);
-        usernameDisplay.textContent = newDisplayName;
-        saveUserData();
-      }
+  input.addEventListener('blur', function() {
+    const newDisplayName = input.value.trim();
+    if (newDisplayName !== '') {
+      setUserDisplayName(newDisplayName);
+      usernameDisplay.textContent = newDisplayName;
+      input.disabled = true; // Делаем поле ввода неактивным после сохранения имени
     }
   });
   usernameDisplay.innerHTML = '';
@@ -189,7 +187,7 @@ function setUserDisplayName(displayName) {
   firebase.auth().currentUser.updateProfile({
     displayName: displayName
   }).then(() => {
-    console.log("Имя пользователя успешно изменено.");
+    console.log("Имя пользователя успешно изменено:", displayName);
   }).catch((error) => {
     console.error("Ошибка при изменении имени пользователя:", error);
   });
