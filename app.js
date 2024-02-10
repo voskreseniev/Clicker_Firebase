@@ -26,6 +26,21 @@ const upgrades = [
   { name: "Улучшение 2", cost: 200, autoclickMultiplier: 3 }
 ];
 
+// Проверяем наличие сохраненной информации о пользователе в локальном хранилище
+const savedUser = localStorage.getItem('user');
+if (savedUser) {
+  const user = JSON.parse(savedUser);
+  firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+    .then((userCredential) => {
+      loginContainer.style.display = 'none';
+      gameContainer.style.display = 'block';
+      loadUserData(); // Загрузка данных пользователя после успешного входа
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
 function login() {
   const email = emailInput.value;
   const password = passwordInput.value;
@@ -33,6 +48,7 @@ function login() {
     .then((userCredential) => {
       loginContainer.style.display = 'none';
       gameContainer.style.display = 'block';
+      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешном входе
       loadUserData(); // Загрузка данных пользователя после успешного входа
     })
     .catch((error) => {
@@ -47,6 +63,7 @@ function signup() {
     .then((userCredential) => {
       loginContainer.style.display = 'none';
       gameContainer.style.display = 'block';
+      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешной регистрации
       suggestUsername(); // Предложение ввести имя пользователя после успешной регистрации
     })
     .catch((error) => {
@@ -59,6 +76,7 @@ function logout() {
     .then(() => {
       loginContainer.style.display = 'block';
       gameContainer.style.display = 'none';
+      localStorage.removeItem('user'); // Удаляем информацию о пользователе из локального хранилища при выходе
       userScore = 0;
       scoreDisplay.textContent = userScore;
       usernameDisplay.textContent = '';
@@ -191,6 +209,10 @@ function setUserDisplayName(displayName) {
   }).catch((error) => {
     console.error("Ошибка при изменении имени пользователя:", error);
   });
+}
+
+function saveUser(email, password) {
+  localStorage.setItem('user', JSON.stringify({ email, password })); // Сохраняем информацию о пользователе в локальное хранилище
 }
 
 usernameDisplay.title = 'Двойной клик для изменения имени';
