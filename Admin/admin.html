@@ -13,7 +13,11 @@
         <input type="password" id="password" placeholder="Password">
         <button type="submit">Login</button>
     </form>
-    <div id="chat-container"></div> <!-- Это контейнер для сообщений чата -->
+    <div id="search-container-wrapper" style="display: none;">
+        <input type="text" id="search-input" placeholder="Search user by name">
+        <button id="search-button">Search</button>
+    </div>
+    <div id="chat-container"></div>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>

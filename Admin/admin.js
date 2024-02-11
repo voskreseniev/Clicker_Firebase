@@ -14,6 +14,10 @@ firebase.initializeApp(firebaseConfig);
 // Ссылка на элементы страницы
 const loginForm = document.getElementById('login-form');
 const chatContainer = document.getElementById('chat-container');
+const searchContainer = document.getElementById('search-container-wrapper'); // Получаем ссылку на контейнер для поиска
+
+// Объявляем переменную для хранения текущего открытого профиля
+let openedProfileUserId = null;
 
 // Обработчик события submit для формы входа в систему
 loginForm.addEventListener('submit', (e) => {
@@ -25,6 +29,8 @@ loginForm.addEventListener('submit', (e) => {
         .then((userCredential) => {
             console.log('Login successful!', userCredential.user);
             loadChat(); // Загружаем чат после успешной аутентификации
+            // Показываем контейнер для поля поиска
+            searchContainer.style.display = 'block';
         })
         .catch((error) => {
             console.error('Login failed!', error);
@@ -108,9 +114,6 @@ function deleteMessage(messageId) {
         });
 }
 
-// Объявляем переменную для хранения текущего открытого профиля
-let openedProfileUserId = null;
-
 // Функция для открытия профиля пользователя
 function toggleUserProfile(userData, userId) {
     const profileContainer = document.createElement('div');
@@ -173,5 +176,36 @@ function loadUserDataBySender(sender) {
         })
         .catch((error) => {
             console.error("Ошибка при загрузке данных пользователя:", error);
+        });
+}
+
+// Обработчик события для кнопки поиска
+document.getElementById('search-button').addEventListener('click', () => {
+    const searchInput = document.getElementById('search-input').value.trim(); // Получаем значение из поля ввода
+    if (searchInput !== '') {
+        searchUserByName(searchInput); // Запускаем функцию поиска пользователя по имени
+    } else {
+        console.log('Please enter a username to search.'); // Если поле ввода пустое, выводим сообщение об ошибке
+    }
+});
+
+// Функция для поиска пользователя по имени
+function searchUserByName(username) {
+    const userRef = firebase.database().ref('users').orderByChild('displayName').equalTo(username);
+    userRef.once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const userData = childSnapshot.val();
+                    const userId = childSnapshot.key;
+                    console.log("User found:", userData);
+                    toggleUserProfile(userData, userId); // Открываем профиль найденного пользователя
+                });
+            } else {
+                console.log("User not found.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error searching for user:", error);
         });
 }
