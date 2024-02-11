@@ -419,3 +419,4 @@ function displayChatMessages() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 }
+
