@@ -9,6 +9,8 @@
 <body>
   <h1>Кликер с Firebase</h1>
   
+  <div id="error-message"></div>
+
   <div id="login-container">
     <h2>Авторизация</h2>
     <input type="email" id="email" placeholder="Email" /><br>
@@ -17,7 +19,7 @@
     <button onclick="signup()">Зарегистрироваться</button>
     <button onclick="resetPassword()">Забыли пароль?</button>
   </div>
-
+  
   <div id="game-container" style="display: none;">
     <h2>Добро пожаловать, <span id="username"></span>!</h2>    
     <button onclick="changePassword()">Сменить пароль</button>

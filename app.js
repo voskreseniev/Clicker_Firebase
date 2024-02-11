@@ -269,3 +269,27 @@ toggleShopButton.addEventListener('click', function() {
 });
 
 logoutButton.style.backgroundColor = 'red';
+const errorMessage = document.getElementById('error-message');
+
+function showError(message) {
+  errorMessage.textContent = message;
+}
+
+function clearError() {
+  errorMessage.textContent = '';
+}
+
+function login() {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      handleLoginSuccess();
+      saveUser(email, password);
+      clearError(); // Очистка сообщения об ошибке при успешном входе
+    })
+    .catch((error) => {
+      showError("Неправильный email или пароль. Пожалуйста, попробуйте снова.");
+      console.error(error); // Логирование ошибки в консоль для отладки
+    });
+}
