@@ -12,10 +12,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Ссылки на элементы страницы
-<<<<<<< HEAD
-=======
-
->>>>>>> c0d60a7efc877dec25cf680dfd82659b0a35a9c9
 const gameContainer = document.getElementById('game-container');
 const loginContainer = document.getElementById('login-container');
 const emailInput = document.getElementById('email');
@@ -25,6 +21,11 @@ const usernameDisplay = document.getElementById('username');
 const toggleShopButton = document.getElementById('toggle-shop-button');
 const shopContainer = document.getElementById('shop-container');
 const logoutButton = document.getElementById('logout-button');
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+const leaderboardContainer = document.getElementById('leaderboard-container');
+const leaderboardList = document.getElementById('leaderboard-list');
+
 let userScore = 0;
 let autoclickInterval;
 let upgrade1Purchased = false;
@@ -34,6 +35,7 @@ const upgrades = [
   { name: "Улучшение 1", cost: 100, autoclickMultiplier: 2 },
   { name: "Улучшение 2", cost: 200, autoclickMultiplier: 3 }
 ];
+
 // Установить изначально стиль блока авторизации на display: none;
 loginContainer.style.display = 'none';
 
@@ -47,10 +49,6 @@ firebase.auth().onAuthStateChanged(function(user) {
     // Если пользователь аутентифицирован, скрываем блок авторизации и отображаем блок игры
     loginContainer.style.display = 'none';
     gameContainer.style.display = 'block';
-<<<<<<< HEAD
-=======
-    loadUserData();
->>>>>>> c0d60a7efc877dec25cf680dfd82659b0a35a9c9
   }
 });
 
@@ -68,7 +66,6 @@ function handleLoginSuccess() {
   gameContainer.style.display = 'block';
   loadUserData();
 }
-
 
 function showAlert(message) {
   alert(message);
@@ -88,7 +85,6 @@ function login() {
       console.error(error); // Логирование ошибки в консоль для отладки
     });
 }
-
 
 function signup() {
   const email = emailInput.value;
@@ -123,7 +119,6 @@ function logout() {
   }
 }
 
-
 document.addEventListener('click', function() {
   if (firebase.auth().currentUser) {
     incrementScore();
@@ -137,7 +132,6 @@ function incrementScore() {
     saveScore(userScore);
   }
 }
-
 
 function loadUserData() {
   const userId = firebase.auth().currentUser.uid;
@@ -169,8 +163,6 @@ function loadUserData() {
     .catch(showAlert);
 }
 
-
-
 function saveScore(score) {
   const user = firebase.auth().currentUser;
   if (user) {
@@ -185,7 +177,6 @@ function saveScore(score) {
     console.error('Ошибка: текущий пользователь не определен');
   }
 }
-
 
 function suggestUsername() {
   const defaultUsername = "User"; // Значение по умолчанию
@@ -216,7 +207,6 @@ function buyUpgrade(upgradeIndex) {
     showAlert("Вы уже приобрели это улучшение или выбрали неверный пункт в магазине.");
   }
 }
-
 
 function updateUpgradeCost(upgradeIndex) {
   const upgrade = upgrades[upgradeIndex - 1];
@@ -308,35 +298,80 @@ function showError(message) {
 function clearError() {
   errorMessage.textContent = '';
 }
+
 // Добавляем обработчик события dblclick к элементу usernameDisplay
 usernameDisplay.addEventListener('dblclick', openUsernameEdit);
 
-function openUsernameEdit() {
-  const currentDisplayName = usernameDisplay.textContent;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = currentDisplayName;
-  input.classList.add('editable-input');
-  input.addEventListener('blur', function() {
-    const newDisplayName = input.value.trim();
-    if (newDisplayName !== '') {
-      setUserDisplayName(newDisplayName);
-      usernameDisplay.textContent = newDisplayName;
-      input.disabled = true;
-    }
-  });
-  usernameDisplay.innerHTML = '';
-  usernameDisplay.appendChild(input);
-  input.focus();
+// Функция для отправки сообщений в чат
+function sendMessage() {
+  const messageInput = document.getElementById('chat-input');
+  const message = messageInput.value.trim();
+  const user = firebase.auth().currentUser;
+  const senderName = user.displayName || 'Anonymous'; // Используем displayName пользователя или 'Anonymous', если нет имени
+  if (message !== '') {
+    const chatRef = firebase.database().ref('chat');
+    chatRef.push({
+      sender: senderName, // Сохраняем имя отправителя
+      message: message,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    messageInput.value = ''; // Очистка поля ввода после отправки сообщения
+  }
 }
-// Ссылки на элементы страницы
-const chatContainer = document.getElementById('chat-container');
-const chatInput = document.getElementById('chat-input');
-const chatMessages = document.getElementById('chat-messages');
-const leaderboardContainer = document.getElementById('leaderboard-container');
-const leaderboardList = document.getElementById('leaderboard-list');
 
 
+// Функция для обновления лидерборда
+function updateLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  const usersRef = firebase.database().ref('users');
+  usersRef.orderByChild('score').limitToLast(10).on('value', function(snapshot) {
+    leaderboardList.innerHTML = ''; // Очистка списка перед обновлением
+    snapshot.forEach(function(childSnapshot) {
+      const userData = childSnapshot.val();
+      const listItem = document.createElement('li');
+      listItem.textContent = userData.displayName + ': ' + userData.score;
+      leaderboardList.appendChild(listItem);
+    });
+  });
+}
+
+// Вызов функций для отображения сообщений чата и обновления лидерборда
+displayChatMessages();
+updateLeaderboard();
+
+function sendMessageToDatabase(messageText, senderName) {
+  const messageRef = firebase.database().ref('chat').push(); // Создаем уникальный ключ для сообщения
+  const timestamp = firebase.database.ServerValue.TIMESTAMP; // Получаем текущую временную метку
+  
+  const messageData = {
+    text: messageText,
+    sender: senderName,
+    timestamp: timestamp
+  };
+
+  messageRef.set(messageData)
+    .then(() => {
+      console.log('Сообщение успешно отправлено в базу данных');
+    })
+    .catch((error) => {
+      console.error('Ошибка при отправке сообщения:', error);
+    });
+}
+
+// Функция для отображения сообщений чата
+function displayChatMessages() {
+  const chatRef = firebase.database().ref('chat');
+  chatRef.on('child_added', function(snapshot) {
+    const messageData = snapshot.val();
+    const sender = messageData.sender || 'Anonymous';
+    const text = messageData.message || '';
+    const messageElement = document.createElement('div');
+    messageElement.textContent = `${sender}: ${text}`;
+    chatMessages.appendChild(messageElement);
+    // Прокрутка вниз при добавлении нового сообщения для просмотра последних сообщений
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
 // Показать/скрыть лидерборд
 function toggleLeaderboard() {
   leaderboardContainer.style.display = leaderboardContainer.style.display === 'none' ? 'block' : 'none';
@@ -363,66 +398,3 @@ function loadLeaderboard() {
 
 // Запустить загрузку лидерборда при загрузке страницы
 window.onload = loadLeaderboard;
-// Функция для отправки сообщений в чат
-function sendMessage() {
-  const messageInput = document.getElementById('chat-input');
-  const message = messageInput.value.trim();
-  if (message !== '') {
-    const chatRef = firebase.database().ref('chat');
-    chatRef.push({
-      message: message,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
-    messageInput.value = ''; // Очистка поля ввода после отправки сообщения
-  }
-}
-// Функция для обновления лидерборда
-function updateLeaderboard() {
-  const leaderboardList = document.getElementById('leaderboard-list');
-  const usersRef = firebase.database().ref('users');
-  usersRef.orderByChild('score').limitToLast(10).on('value', function(snapshot) {
-    leaderboardList.innerHTML = ''; // Очистка списка перед обновлением
-    snapshot.forEach(function(childSnapshot) {
-      const userData = childSnapshot.val();
-      const listItem = document.createElement('li');
-      listItem.textContent = userData.displayName + ': ' + userData.score;
-      leaderboardList.appendChild(listItem);
-    });
-  });
-}
-
-
-// Вызов функций для отображения сообщений чата и обновления лидерборда
-displayChatMessages();
-updateLeaderboard();
-function sendMessageToDatabase(messageText, senderName) {
-  const messageRef = firebase.database().ref('chat').push(); // Создаем уникальный ключ для сообщения
-  const timestamp = firebase.database.ServerValue.TIMESTAMP; // Получаем текущую временную метку
-  
-  const messageData = {
-    text: messageText,
-    sender: senderName,
-    timestamp: timestamp
-  };
-
-  messageRef.set(messageData)
-    .then(() => {
-      console.log('Сообщение успешно отправлено в базу данных');
-    })
-    .catch((error) => {
-      console.error('Ошибка при отправке сообщения:', error);
-    });
-}
-// Функция для отображения сообщений чата
-function displayChatMessages() {
-  const chatRef = firebase.database().ref('chat');
-  chatRef.on('child_added', function(snapshot) {
-    const messageData = snapshot.val();
-    const messageElement = document.createElement('div');
-    const senderName = messageData.sender || 'Anonymous'; // Проверяем наличие отправителя
-    messageElement.textContent = `${senderName}: ${messageData.message}`; // Используем свойство message для текста сообщения
-    chatMessages.appendChild(messageElement);
-    // Прокрутка вниз при добавлении нового сообщения для просмотра последних сообщений
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  });
-}

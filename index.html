@@ -8,68 +8,56 @@
   <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-  <h1>Кликер с Firebase</h1>
-  
-  <div id="error-message"></div>
+  <div class="container">
+    <h1>Кликер с Firebase</h1>
+    
+    <div id="error-message"></div>
 
-  <!-- Блок игры -->
-  <div id="game-container">
-    <!-- Содержимое блока игры -->
-    <h2>Добро пожаловать, <span id="username"></span>!</h2>    
-    <button onclick="changePassword()">Сменить пароль</button>
-    <button onclick="logout()" id="logout-button">Выйти</button>
-    <p>Монет: <span id="score">0</span></p>
-    <p>Кликай в любом месте чтобы получать монеты :) </p>
-    <button id="toggle-shop-button">Открыть магазин</button>
-    <div id="shop-container" style="display: none;">
-      <h2>Магазин улучшений</h2>
-      <ul id="upgrade-list">
-        <li id="upgrade1-item"><span id="upgrade1-name">Улучшение 1</span> - <span id="upgrade1-cost">100</span> монет <button onclick="buyUpgrade(1)">Купить</button></li>
-        <li><span id="upgrade2-name">Улучшение 2</span> - <span id="upgrade2-cost">20000</span> монет <button onclick="buyUpgrade(2)">Купить</button></li>
-        <!-- Добавьте другие улучшения здесь -->
-      </ul>
+    <!-- Блок игры -->
+    <div id="game-container">
+      <!-- Содержимое блока игры -->
+      <h2>Добро пожаловать, <span id="username"></span>!</h2>    
+      <button onclick="changePassword()">Сменить пароль</button>
+      <button onclick="logout()" id="logout-button">Выйти</button>
+      <p>Монет: <span id="score">0</span></p>
+      <p>Кликай в любом месте чтобы получать монеты :) </p>
+      <button id="toggle-shop-button">Открыть магазин</button>
+      <div id="shop-container" style="display: none;">
+        <h2>Магазин улучшений</h2>
+        <ul id="upgrade-list">
+          <li id="upgrade1-item"><span id="upgrade1-name">Улучшение 1</span> - <span id="upgrade1-cost">100</span> монет <button onclick="buyUpgrade(1)">Купить</button></li>
+          <li><span id="upgrade2-name">Улучшение 2</span> - <span id="upgrade2-cost">20000</span> монет <button onclick="buyUpgrade(2)">Купить</button></li>
+          <!-- Добавьте другие улучшения здесь -->
+        </ul>
+      </div>
+
+      <!-- Блок общего чата -->
+      <div id="chat-container">
+        <h2>Общий чат</h2>
+        <div id="chat-messages"></div>
+        <input type="text" id="chat-input" placeholder="Введите сообщение">
+        <button onclick="sendMessage()">Отправить</button>
+      </div>
+
+      <!-- Лидерборд -->
+      <div id="leaderboard-container" style="display: block;">
+        <h2>Лидерборд</h2>
+        <ol id="leaderboard-list"></ol>
+      </div>
     </div>
-
-    <!-- Блок общего чата -->
-   <!-- Добавьте этот блок куда хотите разместить чат -->
-<div id="chat-container">
-  <h2>Общий чат</h2>
-  <div id="chat-messages"></div>
-  <input type="text" id="chat-input" placeholder="Введите сообщение">
-  <button onclick="sendMessage()">Отправить</button>
-</div>
-
-
-    <!-- Лидерборд -->
-    <div id="leaderboard-container" style="display: block;">
-      <h2>Лидерборд</h2>
-      <ol id="leaderboard-list"></ol>
+    
+    <!-- Блок авторизации -->
+    <div id="login-container">
+      <!-- Содержимое блока авторизации -->
+      <h2>Авторизация</h2>
+      <input type="email" id="email" placeholder="Email" /><br>
+      <input type="password" id="password" placeholder="Пароль" /><br>
+      <button onclick="login()">Войти</button>
+      <button onclick="signup()">Зарегистрироваться</button>
+      <button onclick="resetPassword()">Забыли пароль?</button>
     </div>
+  </div>
 
-  </div>
-  
-  <!-- Блок авторизации -->
-  <div id="login-container">
-    <!-- Содержимое блока авторизации -->
-    <h2>Авторизация</h2>
-    <input type="email" id="email" placeholder="Email" /><br>
-    <input type="password" id="password" placeholder="Пароль" /><br>
-    <button onclick="login()">Войти</button>
-    <button onclick="signup()">Зарегистрироваться</button>
-    <button onclick="resetPassword()">Забыли пароль?</button>
-  </div>
-  
-  <!-- Блок авторизации -->
-  <div id="login-container">
-    <!-- Содержимое блока авторизации -->
-    <h2>Авторизация</h2>
-    <input type="email" id="email" placeholder="Email" /><br>
-    <input type="password" id="password" placeholder="Пароль" /><br>
-    <button onclick="login()">Войти</button>
-    <button onclick="signup()">Зарегистрироваться</button>
-    <button onclick="resetPassword()">Забыли пароль?</button>
-  </div>
-  
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
