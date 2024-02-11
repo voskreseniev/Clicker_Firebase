@@ -18,9 +18,13 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const scoreDisplay = document.getElementById('score');
 const usernameDisplay = document.getElementById('username');
+const toggleShopButton = document.getElementById('toggle-shop-button');
+const shopContainer = document.getElementById('shop-container');
+const logoutButton = document.getElementById('logout-button');
 let userScore = 0;
 let autoclickInterval;
 let upgrade1Purchased = false;
+let logoutCalled = false; // Флаг для проверки, был ли уже вызван выход
 const upgrades = [
   { name: "Улучшение 1", cost: 100, autoclickMultiplier: 2 },
   { name: "Улучшение 2", cost: 200, autoclickMultiplier: 3 }
@@ -31,14 +35,18 @@ const savedUser = localStorage.getItem('user');
 if (savedUser) {
   const user = JSON.parse(savedUser);
   firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-    .then((userCredential) => {
-      loginContainer.style.display = 'none';
-      gameContainer.style.display = 'block';
-      loadUserData(); // Загрузка данных пользователя после успешного входа
-    })
-    .catch((error) => {
-      alert(error.message);
-    });
+    .then(handleLoginSuccess)
+    .catch(showAlert);
+}
+
+function handleLoginSuccess() {
+  loginContainer.style.display = 'none';
+  gameContainer.style.display = 'block';
+  loadUserData();
+}
+
+function showAlert(message) {
+  alert(message);
 }
 
 function login() {
@@ -46,14 +54,10 @@ function login() {
   const password = passwordInput.value;
   firebase.auth().signInWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      loginContainer.style.display = 'none';
-      gameContainer.style.display = 'block';
-      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешном входе
-      loadUserData(); // Загрузка данных пользователя после успешного входа
+      handleLoginSuccess();
+      saveUser(email, password);
     })
-    .catch((error) => {
-      alert(error.message);
-    });
+    .catch(showAlert);
 }
 
 function signup() {
@@ -61,47 +65,48 @@ function signup() {
   const password = passwordInput.value;
   firebase.auth().createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      loginContainer.style.display = 'none';
-      gameContainer.style.display = 'block';
-      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешной регистрации
-      suggestUsername(); // Предложение ввести имя пользователя после успешной регистрации
+      handleLoginSuccess();
+      saveUser(email, password);
+      suggestUsername();
     })
-    .catch((error) => {
-      alert(error.message);
-    });
+    .catch(showAlert);
 }
 
 function logout() {
-  firebase.auth().signOut()
-    .then(() => {
-      loginContainer.style.display = 'block';
-      gameContainer.style.display = 'none';
-      localStorage.removeItem('user'); // Удаляем информацию о пользователе из локального хранилища при выходе
-      userScore = 0;
-      scoreDisplay.textContent = userScore;
-      usernameDisplay.textContent = '';
-      clearInterval(autoclickInterval);
-    })
-    .catch((error) => {
-      alert(error.message);
-    });
-}
+  // Удаляем обработчик события клика на кнопке "выход"
+  logoutButton.removeEventListener('click', logout);
 
-// Функция для обработки клика после проверки авторизации пользователя
-function handleClick() {
-  if (firebase.auth().currentUser) {
-    incrementScore();
+  const confirmLogout = confirm("Вы уверены, что хотите выйти?");
+  if (confirmLogout) {
+    firebase.auth().signOut()
+      .then(() => {
+        loginContainer.style.display = 'block';
+        gameContainer.style.display = 'none';
+        localStorage.removeItem('user');
+        userScore = 0;
+        scoreDisplay.textContent = userScore;
+        usernameDisplay.textContent = '';
+        clearInterval(autoclickInterval);
+      })
+      .catch(showAlert);
   }
 }
 
-// Заменяем обработчик события click на вызов функции handleClick
-document.addEventListener('click', handleClick);
+
+document.addEventListener('click', function() {
+  if (firebase.auth().currentUser) {
+    incrementScore();
+  }
+});
 
 function incrementScore() {
   userScore++;
   scoreDisplay.textContent = userScore;
-  saveScore(userScore);
+  if (firebase.auth().currentUser) {
+    saveScore(userScore);
+  }
 }
+
 
 function loadUserData() {
   const userId = firebase.auth().currentUser.uid;
@@ -117,29 +122,34 @@ function loadUserData() {
           startAutoclick();
           const upgradeButton = document.getElementById('upgrade1-item');
           upgradeButton.disabled = true;
-          upgradeButton.textContent = 'Куплено';
+          upgradeButton.textContent = 'Автокликер куплен успешно';
         }
         const displayName = userData.displayName;
         if (displayName) {
-          usernameDisplay.textContent = displayName; // Загружаем имя пользователя из базы данных
+          usernameDisplay.textContent = displayName;
         } else {
-          suggestUsername(); // Предлагаем ввести имя пользователя, если оно отсутствует
+          suggestUsername();
         }
       }
     })
-    .catch((error) => {
-      console.error(error);
-    });
+    .catch(showAlert);
 }
 
 function saveScore(score) {
-  const userId = firebase.auth().currentUser.uid;
-  firebase.database().ref('users/' + userId).set({
-    displayName: firebase.auth().currentUser.displayName,
-    score: score,
-    upgrade1Purchased: upgrade1Purchased
-  });
+  const user = firebase.auth().currentUser;
+  if (user) {
+    const userId = user.uid;
+    firebase.database().ref('users/' + userId).set({
+      displayName: user.displayName,
+      score: score,
+      upgrade1Purchased: upgrade1Purchased
+    });
+  } else {
+    // Обработка случая, когда текущий пользователь не определен
+    console.error('Ошибка: текущий пользователь не определен');
+  }
 }
+
 
 function suggestUsername() {
   const defaultUsername = "Анонимный пользователь";
@@ -159,12 +169,12 @@ function buyUpgrade(upgradeIndex) {
       upgrade1Purchased = true;
       startAutoclick();
       updateUpgradeCost(upgradeIndex);
-      saveUserData();
+      saveScore(userScore);
     } else {
-      alert("Недостаточно монет для покупки улучшения!");
+      showAlert("Недостаточно монет для покупки улучшения!");
     }
   } else {
-    alert("Вы уже приобрели это улучшение или выбрали неверный пункт в магазине.");
+    showAlert("Вы уже приобрели это улучшение или выбрали неверный пункт в магазине.");
   }
 }
 
@@ -175,9 +185,7 @@ function updateUpgradeCost(upgradeIndex) {
 }
 
 function startAutoclick() {
-  autoclickInterval = setInterval(function() {
-    incrementScore();
-  }, 1000);
+  autoclickInterval = setInterval(incrementScore, 1000);
 }
 
 let lastClickTime = 0;
@@ -202,7 +210,7 @@ function openUsernameEdit() {
     if (newDisplayName !== '') {
       setUserDisplayName(newDisplayName);
       usernameDisplay.textContent = newDisplayName;
-      input.disabled = true; // Делаем поле ввода неактивным после сохранения имени
+      input.disabled = true;
     }
   });
   usernameDisplay.innerHTML = '';
@@ -221,59 +229,40 @@ function setUserDisplayName(displayName) {
 }
 
 function saveUser(email, password) {
-  localStorage.setItem('user', JSON.stringify({ email, password })); // Сохраняем информацию о пользователе в локальное хранилище
+  localStorage.setItem('user', JSON.stringify({ email, password }));
 }
 
 usernameDisplay.title = 'Двойной клик для изменения имени';
-function suggestUsername() {
-  const defaultUsername = "user"; // Стандартное имя для новых пользователей
-  const displayName = prompt("Пожалуйста, введите ваше имя:", defaultUsername);
-  if (displayName && displayName.trim() !== '') {
-    setUserDisplayName(displayName);
-    usernameDisplay.textContent = displayName;
-  } else {
-    setUserDisplayName(defaultUsername); // Если пользователь не ввел имя или ввел пустую строку, устанавливаем стандартное имя
-    usernameDisplay.textContent = defaultUsername;
-  }
-}
+
 function resetPassword() {
   const email = emailInput.value;
   firebase.auth().sendPasswordResetEmail(email)
     .then(() => {
-      alert("На вашу почту отправлена ссылка для смены пароля.");
+      showAlert("На вашу почту отправлена ссылка для смены пароля.");
     })
-    .catch((error) => {
-      alert(error.message);
-    });
+    .catch(showAlert);
 }
 
-// Внутри функции signup() добавим кнопку смены пароля после успешной регистрации
-function signup() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      loginContainer.style.display = 'none';
-      gameContainer.style.display = 'block';
-      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешной регистрации
-      suggestUsername(); // Предложение ввести имя пользователя после успешной регистрации
-      addButtonChangePassword(); // Добавляем кнопку смены пароля
-    })
-    .catch((error) => {
-      alert(error.message);
-    });
-}
-
-
-// Функция смены пароля
 function changePassword() {
   const user = firebase.auth().currentUser;
   const newPassword = prompt("Пожалуйста, введите новый пароль:");
   user.updatePassword(newPassword)
     .then(() => {
-      alert("Пароль успешно изменен.");
+      showAlert("Пароль успешно изменен.");
     })
-    .catch((error) => {
-      alert(error.message);
-    });
+    .catch(showAlert);
 }
+
+toggleShopButton.addEventListener('click', function() {
+  if (!shopOpen) {
+    shopContainer.style.display = 'block';
+    toggleShopButton.textContent = 'Закрыть магазин';
+    shopOpen = true;
+  } else {
+    shopContainer.style.display = 'none';
+    toggleShopButton.textContent = 'Открыть магазин';
+    shopOpen = false;
+  }
+});
+
+logoutButton.style.backgroundColor = 'red';

@@ -83,3 +83,10 @@ button:hover {
   display: none;
   z-index: 9999;
 }
+#game-container p {
+  font-size: 25px; /* Увеличиваем размер текста сообщения */
+}
+#shop-container {
+  display: none; /* Скрываем магазин улучшений изначально */
+  /* Остальные стили магазина остаются без изменений */
+}
