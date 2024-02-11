@@ -65,7 +65,10 @@ function handleLoginSuccess() {
   loginContainer.style.display = 'none';
   gameContainer.style.display = 'block';
   loadUserData();
+  autoclickRunning = false; // Сбрасываем флаг при успешном входе
+  startAutoclick(); // Запускаем автоклик после успешного входа
 }
+
 
 function showAlert(message) {
   alert(message);
@@ -114,24 +117,32 @@ function signup() {
 }
 
 function logout() {
-  // Удаляем обработчик события клика на кнопке "выход"
-  logoutButton.removeEventListener('click', logout);
-
-  const confirmLogout = confirm("Вы уверены, что хотите выйти?");
-  if (confirmLogout) {
-    firebase.auth().signOut()
-      .then(() => {
-        loginContainer.style.display = 'block';
-        gameContainer.style.display = 'none';
-        localStorage.removeItem('user');
-        userScore = 0;
-        scoreDisplay.textContent = userScore;
-        usernameDisplay.textContent = '';
-        clearInterval(autoclickInterval);
-      })
-      .catch(showAlert);
+  const user = firebase.auth().currentUser;
+  if (user) { // Проверяем наличие текущего пользователя
+    // Удаляем обработчик события клика на кнопке "выход"
+    logoutButton.removeEventListener('click', logout);
+    
+    const confirmLogout = confirm("Вы уверены, что хотите выйти?");
+    if (confirmLogout) {
+      firebase.auth().signOut()
+        .then(() => {
+          loginContainer.style.display = 'block';
+          gameContainer.style.display = 'none';
+          localStorage.removeItem('user');
+          userScore = 0;
+          scoreDisplay.textContent = userScore;
+          usernameDisplay.textContent = '';
+          clearInterval(autoclickInterval);
+        })
+        .catch(showAlert);
+    }
+  } else {
+    console.error('Ошибка: текущий пользователь не определен');
   }
 }
+
+
+
 
 document.addEventListener('click', function() {
   if (firebase.auth().currentUser) {
@@ -165,7 +176,7 @@ function incrementScore() {
       console.error('Error incrementing score:', error);
     });
   } else {
-    console.error('Error: Current user is not defined');
+  
   }
 }
 
@@ -178,14 +189,18 @@ function loadUserData() {
       .then((snapshot) => {
         const userData = snapshot.val();
         const score = userData.score || 0;
-        // Update the score display on the page
+        upgrade1Purchased = userData.upgrade1Purchased || false;
         scoreDisplay.textContent = score;
+
+        if (upgrade1Purchased) {
+          startAutoclick(); // Если улучшение 1 куплено, запускаем автоклик
+        }
       })
       .catch((error) => {
         console.error('Error loading user data:', error);
       });
   } else {
-    console.error('Error: Current user is not defined');
+
   }
 }
 
@@ -226,16 +241,17 @@ function buyUpgrade(upgradeIndex) {
       .then((snapshot) => {
         const userData = snapshot.val();
         let userScore = userData.score || 0;
+        const upgradePurchased = userData.upgrade1Purchased || false;
 
-        if (!upgrade1Purchased && upgradeIndex === 1) {
+        if (!upgradePurchased && upgradeIndex === 1) {
           if (userScore >= upgrade.cost) {
             userScore -= upgrade.cost;
-            scoreDisplay.textContent = userScore; // Обновляем отображение баланса монет
+            scoreDisplay.textContent = userScore;
             upgrade1Purchased = true;
-            console.log("Улучшение 1 приобретено:", upgrade1Purchased); // Добавляем логирование
-            startAutoclick();
+            startAutoclick(); // Включаем автоклик после покупки улучшения 1
             updateUpgradeCost(upgradeIndex);
             saveScore(userScore);
+            userRef.update({ upgrade1Purchased: true }); // Обновляем информацию о покупке улучшения в базе данных
           } else {
             showAlert("Недостаточно монет для покупки улучшения!");
           }
@@ -251,19 +267,24 @@ function buyUpgrade(upgradeIndex) {
   }
 }
 
-
 function updateUpgradeCost(upgradeIndex) {
   const upgrade = upgrades[upgradeIndex - 1];
   const upgradeElement = document.getElementById(`upgrade${upgradeIndex}-cost`);
   upgradeElement.textContent = upgrade.cost;
 }
 
+let autoclickRunning = false; // Флаг для отслеживания состояния автоклика
+
 function startAutoclick() {
-  autoclickInterval = setInterval(incrementScore, 1000);
+  if (!autoclickRunning) { // Проверяем, не запущен ли уже автоклик
+    autoclickInterval = setInterval(incrementScore, 1000);
+    autoclickRunning = true; // Устанавливаем флаг в true, чтобы указать, что автоклик запущен
+  }
 }
 
 function stopAutoclick() {
   clearInterval(autoclickInterval);
+  autoclickRunning = false; // Устанавливаем флаг в false, чтобы указать, что автоклик остановлен
 }
 
 function openUsernameEdit() {

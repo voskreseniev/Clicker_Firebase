@@ -27,10 +27,26 @@ loginForm.addEventListener('submit', (e) => {
 
     firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            console.log('Login successful!', userCredential.user);
-            loadChat(); // Загружаем чат после успешной аутентификации
-            // Показываем контейнер для поля поиска
-            searchContainer.style.display = 'block';
+            const userId = userCredential.user.uid;
+            const userRef = firebase.database().ref('users/' + userId);
+            userRef.once('value')
+                .then((snapshot) => {
+                    console.log('User data from database:', snapshot.val());
+                    const userData = snapshot.val();
+                    if (userData && userData.admin === true) {
+                        console.log('Login successful!', userCredential.user);
+                        loadChat(); // Загружаем чат после успешной аутентификации
+                        // Показываем контейнер для поля поиска
+                        searchContainer.style.display = 'block';
+                    } else {
+                        console.error('User is not an admin.');
+                        // Пользователь не является администратором, можно выполнить необходимые действия, например, разлогинить пользователя
+                        firebase.auth().signOut();
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error);
+                });
         })
         .catch((error) => {
             console.error('Login failed!', error);
