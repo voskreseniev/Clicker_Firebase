@@ -324,12 +324,16 @@ function sendMessage() {
 function updateLeaderboard() {
   const leaderboardList = document.getElementById('leaderboard-list');
   const usersRef = firebase.database().ref('users');
-  usersRef.orderByChild('score').limitToLast(10).on('value', function(snapshot) {
+  usersRef.orderByChild('score').limitToLast(10).once('value', function(snapshot) {
     leaderboardList.innerHTML = ''; // Очистка списка перед обновлением
+    const leaderboardData = [];
     snapshot.forEach(function(childSnapshot) {
-      const userData = childSnapshot.val();
+      leaderboardData.push(childSnapshot.val());
+    });
+    leaderboardData.reverse(); // Разворачиваем массив, чтобы отобразить лидеров с наивысшими баллами в начале
+    leaderboardData.forEach(function(user, index) {
       const listItem = document.createElement('li');
-      listItem.textContent = userData.displayName + ': ' + userData.score;
+      listItem.textContent = `${index + 1}. ${user.displayName || 'Anonymous'}: ${user.score}`;
       leaderboardList.appendChild(listItem);
     });
   });
@@ -372,29 +376,3 @@ function displayChatMessages() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 }
-// Показать/скрыть лидерборд
-function toggleLeaderboard() {
-  leaderboardContainer.style.display = leaderboardContainer.style.display === 'none' ? 'block' : 'none';
-}
-
-// Загрузить лидерборд
-function loadLeaderboard() {
-  firebase.database().ref('users').orderByChild('score').limitToLast(10).once('value')
-    .then((snapshot) => {
-      leaderboardList.innerHTML = '';
-      snapshot.forEach((childSnapshot) => {
-        const userData = childSnapshot.val();
-        const username = userData.displayName || 'Anonymous';
-        const score = userData.score || 0;
-        const listItem = document.createElement('li');
-        listItem.textContent = `${username}: ${score}`;
-        leaderboardList.appendChild(listItem);
-      });
-    })
-    .catch((error) => {
-      console.error('Ошибка загрузки лидерборда:', error);
-    });
-}
-
-// Запустить загрузку лидерборда при загрузке страницы
-window.onload = loadLeaderboard;
