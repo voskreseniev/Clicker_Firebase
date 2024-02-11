@@ -152,12 +152,14 @@ function saveScore(score) {
 
 
 function suggestUsername() {
-  const defaultUsername = "Анонимный пользователь";
-  const displayName = prompt("Пожалуйста, введите ваше имя:", defaultUsername);
-  if (displayName && displayName !== defaultUsername) {
-    setUserDisplayName(displayName);
-    usernameDisplay.textContent = displayName;
+  const defaultUsername = "User"; // Значение по умолчанию
+  let displayName = prompt("Пожалуйста, введите ваше имя:", defaultUsername);
+  if (!displayName || displayName.trim() === "") {
+    // Если пользователь не ввел имя или ввел пустую строку, устанавливаем значение по умолчанию
+    displayName = defaultUsername;
   }
+  setUserDisplayName(displayName);
+  usernameDisplay.textContent = displayName;
 }
 
 function buyUpgrade(upgradeIndex) {
