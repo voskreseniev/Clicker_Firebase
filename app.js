@@ -236,3 +236,44 @@ function suggestUsername() {
     usernameDisplay.textContent = defaultUsername;
   }
 }
+function resetPassword() {
+  const email = emailInput.value;
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => {
+      alert("На вашу почту отправлена ссылка для смены пароля.");
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+// Внутри функции signup() добавим кнопку смены пароля после успешной регистрации
+function signup() {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      loginContainer.style.display = 'none';
+      gameContainer.style.display = 'block';
+      saveUser(email, password); // Сохраняем информацию о пользователе в локальное хранилище при успешной регистрации
+      suggestUsername(); // Предложение ввести имя пользователя после успешной регистрации
+      addButtonChangePassword(); // Добавляем кнопку смены пароля
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+
+// Функция смены пароля
+function changePassword() {
+  const user = firebase.auth().currentUser;
+  const newPassword = prompt("Пожалуйста, введите новый пароль:");
+  user.updatePassword(newPassword)
+    .then(() => {
+      alert("Пароль успешно изменен.");
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}

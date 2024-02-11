@@ -15,10 +15,13 @@
     <input type="password" id="password" placeholder="Пароль" /><br>
     <button onclick="login()">Войти</button>
     <button onclick="signup()">Зарегистрироваться</button>
+    <button onclick="resetPassword()">Забыли пароль?</button>
   </div>
 
   <div id="game-container" style="display: none;">
-    <h2>Добро пожаловать, <span id="username"></span>!</h2>    <button onclick="logout()">Выйти</button>
+    <h2>Добро пожаловать, <span id="username"></span>!</h2>    
+    <button onclick="changePassword()">Сменить пароль</button>
+    <button onclick="logout()">Выйти</button>
     <p>Монет: <span id="score">0</span></p>
     <p>Кликай в любом месте чтобы получать монеты :) </p>
 <!-- Добавьте следующий блок кода перед закрывающим тегом </div> для #game-container -->
