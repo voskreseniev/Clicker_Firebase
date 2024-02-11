@@ -62,13 +62,22 @@ if (savedUser) {
 }
 
 function handleLoginSuccess() {
-  loginContainer.style.display = 'none';
-  gameContainer.style.display = 'block';
-  loadUserData();
-  autoclickRunning = false; // Сбрасываем флаг при успешном входе
-  startAutoclick(); // Запускаем автоклик после успешного входа
-}
-
+  const user = firebase.auth().currentUser;
+  if (user) {
+    // Загружаем данные пользователя из базы данных
+    const userId = user.uid;
+    const userRef = firebase.database().ref('users/' + userId);
+    userRef.once('value')
+      .then((snapshot) => {
+        const userData = snapshot.val();
+        const displayName = userData.displayName || 'Anonymous';
+        usernameDisplay.textContent = ` ${displayName}`;
+      })
+      .catch((error) => {
+        console.error('Ошибка загрузки данных пользователя:', error);
+      });
+    }
+  }
 
 function showAlert(message) {
   alert(message);
@@ -323,14 +332,15 @@ function setUserDisplayName(displayName) {
   }
 }
 
+// Отображение имени пользователя с использованием шаблонной строки
 function updateUserDisplayNameInDatabase(displayName) {
   const user = firebase.auth().currentUser;
   if (user) {
     const userId = user.uid;
-    firebase.database().ref('users/' + userId).update({
+    firebase.database().ref(`users/${userId}`).update({
       displayName: displayName
     }).then(() => {
-      console.log("Имя пользователя успешно обновлено в базе данных:", displayName);
+      console.log(`Имя пользователя успешно обновлено в базе данных: ${displayName}`);
     }).catch((error) => {
       console.error("Ошибка при обновлении имени пользователя в базе данных:", error);
     });
