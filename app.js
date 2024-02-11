@@ -87,9 +87,15 @@ function logout() {
     });
 }
 
-document.addEventListener('click', function() {
-  incrementScore();
-});
+// Функция для обработки клика после проверки авторизации пользователя
+function handleClick() {
+  if (firebase.auth().currentUser) {
+    incrementScore();
+  }
+}
+
+// Заменяем обработчик события click на вызов функции handleClick
+document.addEventListener('click', handleClick);
 
 function incrementScore() {
   userScore++;
@@ -109,6 +115,9 @@ function loadUserData() {
         upgrade1Purchased = userData.upgrade1Purchased || false;
         if (upgrade1Purchased) {
           startAutoclick();
+          const upgradeButton = document.getElementById('upgrade1-item');
+          upgradeButton.disabled = true;
+          upgradeButton.textContent = 'Куплено';
         }
         const displayName = userData.displayName;
         if (displayName) {
@@ -216,3 +225,14 @@ function saveUser(email, password) {
 }
 
 usernameDisplay.title = 'Двойной клик для изменения имени';
+function suggestUsername() {
+  const defaultUsername = "user"; // Стандартное имя для новых пользователей
+  const displayName = prompt("Пожалуйста, введите ваше имя:", defaultUsername);
+  if (displayName && displayName.trim() !== '') {
+    setUserDisplayName(displayName);
+    usernameDisplay.textContent = displayName;
+  } else {
+    setUserDisplayName(defaultUsername); // Если пользователь не ввел имя или ввел пустую строку, устанавливаем стандартное имя
+    usernameDisplay.textContent = defaultUsername;
+  }
+}
