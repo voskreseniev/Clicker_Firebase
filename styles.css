@@ -3,6 +3,9 @@ body {
   background-color: #f0f0f0;
   margin: 0;
   padding: 0;
+  background-image: url('background.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 h1 {
@@ -59,7 +62,7 @@ button:hover {
   content: "Нажмите 2 раза для изменения";
   display: block;
   position: absolute;
-  top: calc(100% + 5px); /* Отступ от нижней границы имени пользователя */
+  top: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 12px;
@@ -69,7 +72,7 @@ button:hover {
 #score {
   font-size: 24px;
   font-weight: bold;
-  color: #ff9800; /* Цвет монет */
+  color: #ff9800;
 }
 
 #game-container::after {
@@ -79,24 +82,23 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5); /* Полупрозрачный белый цвет */
+  background-color: rgba(255, 255, 255, 0.5);
   display: none;
   z-index: 9999;
 }
 
 #game-container p {
-  font-size: 25px; /* Увеличиваем размер текста сообщения */
+  font-size: 25px;
 }
 
 #shop-container {
-  display: none; /* Скрываем магазин улучшений изначально */
-  /* Остальные стили магазина остаются без изменений */
+  display: none;
 }
 
 #error-message {
   color: red;
   font-size: 14px;
-  margin-top: 3%; /* Адаптивный отступ сверху */
-  margin-bottom: 15px; /* Отступ снизу */
-  text-align: center; /* Центрирование текста */
+  margin-top: 3%;
+  margin-bottom: 15px;
+  text-align: center;
 }

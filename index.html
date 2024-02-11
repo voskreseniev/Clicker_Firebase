@@ -5,22 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Кликер с Firebase</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
   <h1>Кликер с Firebase</h1>
   
   <div id="error-message"></div>
 
-  <div id="login-container">
-    <h2>Авторизация</h2>
-    <input type="email" id="email" placeholder="Email" /><br>
-    <input type="password" id="password" placeholder="Пароль" /><br>
-    <button onclick="login()">Войти</button>
-    <button onclick="signup()">Зарегистрироваться</button>
-    <button onclick="resetPassword()">Забыли пароль?</button>
-  </div>
-  
-  <div id="game-container" style="display: none;">
+  <!-- Блок игры -->
+  <div id="game-container">
+    <!-- Содержимое блока игры -->
     <h2>Добро пожаловать, <span id="username"></span>!</h2>    
     <button onclick="changePassword()">Сменить пароль</button>
     <button onclick="logout()" id="logout-button">Выйти</button>
@@ -35,6 +29,17 @@
         <!-- Добавьте другие улучшения здесь -->
       </ul>
     </div>
+  </div>
+  
+  <!-- Блок авторизации -->
+  <div id="login-container">
+    <!-- Содержимое блока авторизации -->
+    <h2>Авторизация</h2>
+    <input type="email" id="email" placeholder="Email" /><br>
+    <input type="password" id="password" placeholder="Пароль" /><br>
+    <button onclick="login()">Войти</button>
+    <button onclick="signup()">Зарегистрироваться</button>
+    <button onclick="resetPassword()">Забыли пароль?</button>
   </div>
   
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>

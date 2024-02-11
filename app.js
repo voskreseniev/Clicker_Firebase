@@ -14,7 +14,6 @@ firebase.initializeApp(firebaseConfig);
 // Ссылки на элементы страницы
 const gameContainer = document.getElementById('game-container');
 const loginContainer = document.getElementById('login-container');
-const gameContainer = document.getElementById('game-container');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const scoreDisplay = document.getElementById('score');
@@ -31,6 +30,22 @@ const upgrades = [
   { name: "Улучшение 1", cost: 100, autoclickMultiplier: 2 },
   { name: "Улучшение 2", cost: 200, autoclickMultiplier: 3 }
 ];
+// Установить изначально стиль блока авторизации на display: none;
+loginContainer.style.display = 'none';
+
+// Отслеживаем изменения состояния аутентификации пользователя
+firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) {
+    // Если пользователь не аутентифицирован, показываем блок авторизации
+    loginContainer.style.display = 'block';
+    gameContainer.style.display = 'none';
+  } else {
+    // Если пользователь аутентифицирован, скрываем блок авторизации и отображаем блок игры
+    loginContainer.style.display = 'none';
+    gameContainer.style.display = 'block';
+    loadUserData();
+  }
+});
 
 // Проверяем наличие сохраненной информации о пользователе в локальном хранилище
 const savedUser = localStorage.getItem('user');
@@ -46,6 +61,7 @@ function handleLoginSuccess() {
   gameContainer.style.display = 'block';
   loadUserData();
 }
+
 
 function showAlert(message) {
   alert(message);
