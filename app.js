@@ -140,41 +140,53 @@ document.addEventListener('click', function() {
 });
 
 function incrementScore() {
-  userScore++;
-  scoreDisplay.textContent = userScore;
-  if (firebase.auth().currentUser) {
-    saveScore(userScore);
+  const user = firebase.auth().currentUser;
+  if (user) {
+    const userId = user.uid;
+    const userRef = firebase.database().ref('users/' + userId);
+
+    // Start a transaction to increment the score
+    userRef.transaction((userData) => {
+      if (userData) {
+        // If the user data exists, update the score
+        userData.score = (userData.score || 0) + 1; // Increment the score by 1
+      }
+      return userData; // Return the updated user data
+    })
+    .then(() => {
+      // Transaction completed successfully
+      console.log('Score incremented successfully');
+      
+      // Reload user data to update the score display
+      loadUserData();
+    })
+    .catch((error) => {
+      // Transaction failed
+      console.error('Error incrementing score:', error);
+    });
+  } else {
+    console.error('Error: Current user is not defined');
   }
 }
 
 function loadUserData() {
-  const userId = firebase.auth().currentUser.uid;
-  const userRef = firebase.database().ref('users/' + userId);
-  userRef.once('value')
-    .then((snapshot) => {
-      const userData = snapshot.val();
-      console.log("Загруженные данные пользователя:", userData); // Добавляем логирование
-      if (userData !== null) {
-        userScore = userData.score || 0;
-        scoreDisplay.textContent = userScore;
-        upgrade1Purchased = userData.upgrade1Purchased || false; // Загрузка информации из базы данных
-        if (upgrade1Purchased) {
-          startAutoclick();
-          const upgradeButton = document.getElementById('upgrade1-item');
-          upgradeButton.disabled = true;
-          upgradeButton.textContent = 'Автокликер куплен успешно';
-        } else {
-          stopAutoclick(); // Добавляем эту строку, чтобы убедиться, что автокликер не активен, если улучшение 1 не приобретено
-        }
-        const displayName = userData.displayName;
-        if (displayName) {
-          usernameDisplay.textContent = displayName;
-        } else {
-          // Не вызываем suggestUsername() здесь
-        }
-      }
-    })
-    .catch(showAlert);
+  const user = firebase.auth().currentUser;
+  if (user) {
+    const userId = user.uid;
+    const userRef = firebase.database().ref('users/' + userId);
+    userRef.once('value')
+      .then((snapshot) => {
+        const userData = snapshot.val();
+        const score = userData.score || 0;
+        // Update the score display on the page
+        scoreDisplay.textContent = score;
+      })
+      .catch((error) => {
+        console.error('Error loading user data:', error);
+      });
+  } else {
+    console.error('Error: Current user is not defined');
+  }
 }
 
 function saveScore(score) {
@@ -204,22 +216,41 @@ function suggestUsername() {
 
 function buyUpgrade(upgradeIndex) {
   const upgrade = upgrades[upgradeIndex - 1];
-  if (!upgrade1Purchased && upgradeIndex === 1) {
-    if (userScore >= upgrade.cost) {
-      userScore -= upgrade.cost;
-      scoreDisplay.textContent = userScore;
-      upgrade1Purchased = true;
-      console.log("Улучшение 1 приобретено:", upgrade1Purchased); // Добавляем логирование
-      startAutoclick();
-      updateUpgradeCost(upgradeIndex);
-      saveScore(userScore);
-    } else {
-      showAlert("Недостаточно монет для покупки улучшения!");
-    }
+  const user = firebase.auth().currentUser;
+
+  if (user) {
+    const userId = user.uid;
+    const userRef = firebase.database().ref('users/' + userId);
+
+    userRef.once('value')
+      .then((snapshot) => {
+        const userData = snapshot.val();
+        let userScore = userData.score || 0;
+
+        if (!upgrade1Purchased && upgradeIndex === 1) {
+          if (userScore >= upgrade.cost) {
+            userScore -= upgrade.cost;
+            scoreDisplay.textContent = userScore; // Обновляем отображение баланса монет
+            upgrade1Purchased = true;
+            console.log("Улучшение 1 приобретено:", upgrade1Purchased); // Добавляем логирование
+            startAutoclick();
+            updateUpgradeCost(upgradeIndex);
+            saveScore(userScore);
+          } else {
+            showAlert("Недостаточно монет для покупки улучшения!");
+          }
+        } else {
+          showAlert("Вы уже приобрели это улучшение или выбрали неверный пункт в магазине.");
+        }
+      })
+      .catch((error) => {
+        console.error('Ошибка при проверке баланса монет:', error);
+      });
   } else {
-    showAlert("Вы уже приобрели это улучшение или выбрали неверный пункт в магазине.");
+    console.error('Ошибка: текущий пользователь не определен');
   }
 }
+
 
 function updateUpgradeCost(upgradeIndex) {
   const upgrade = upgrades[upgradeIndex - 1];
