@@ -12,6 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Ссылки на элементы страницы
+const gameContainer = document.getElementById('game-container');
 const loginContainer = document.getElementById('login-container');
 const gameContainer = document.getElementById('game-container');
 const emailInput = document.getElementById('email');
@@ -93,6 +94,7 @@ function logout() {
   }
 }
 
+
 document.addEventListener('click', function() {
   if (firebase.auth().currentUser) {
     incrementScore();
@@ -107,24 +109,6 @@ function incrementScore() {
   }
 }
 
-// Переменные для отслеживания скорости кликов
-let lastClickTime = 0;
-let clickCount = 0;
-
-document.addEventListener('click', function() {
-  const currentTime = new Date().getTime();
-  const timeDiff = currentTime - lastClickTime;
-
-  if (timeDiff < 300) {
-    clickCount++;
-  } else {
-    clickCount = 1;
-  }
-
-  lastClickTime = currentTime;
-
-  incrementScore(clickCount);
-});
 
 function loadUserData() {
   const userId = firebase.auth().currentUser.uid;
@@ -168,6 +152,7 @@ function saveScore(score) {
   }
 }
 
+
 function suggestUsername() {
   const defaultUsername = "User"; // Значение по умолчанию
   let displayName = prompt("Пожалуйста, введите ваше имя:", defaultUsername);
@@ -206,6 +191,8 @@ function updateUpgradeCost(upgradeIndex) {
 function startAutoclick() {
   autoclickInterval = setInterval(incrementScore, 1000);
 }
+
+let lastClickTime = 0;
 
 usernameDisplay.addEventListener('click', function() {
   const currentTime = new Date().getTime();
