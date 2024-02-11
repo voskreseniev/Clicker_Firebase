@@ -25,6 +25,7 @@ let userScore = 0;
 let autoclickInterval;
 let upgrade1Purchased = false;
 let logoutCalled = false; // Флаг для проверки, был ли уже вызван выход
+let shopOpen = false;
 const upgrades = [
   { name: "Улучшение 1", cost: 100, autoclickMultiplier: 2 },
   { name: "Улучшение 2", cost: 200, autoclickMultiplier: 3 }
