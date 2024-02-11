@@ -43,7 +43,6 @@ firebase.auth().onAuthStateChanged(function(user) {
     // Если пользователь аутентифицирован, скрываем блок авторизации и отображаем блок игры
     loginContainer.style.display = 'none';
     gameContainer.style.display = 'block';
-    loadUserData();
   }
 });
 
@@ -74,9 +73,14 @@ function login() {
     .then((userCredential) => {
       handleLoginSuccess();
       saveUser(email, password);
+      clearError(); // Очистка сообщения об ошибке при успешном входе
     })
-    .catch(showAlert);
+    .catch((error) => {
+      showError("Неправильный email или пароль. Пожалуйста, попробуйте снова.");
+      console.error(error); // Логирование ошибки в консоль для отладки
+    });
 }
+
 
 function signup() {
   const email = emailInput.value;
@@ -86,6 +90,7 @@ function signup() {
       handleLoginSuccess();
       saveUser(email, password);
       suggestUsername();
+      upgrade1Purchased = false;
     })
     .catch(showAlert);
 }
@@ -132,26 +137,31 @@ function loadUserData() {
   userRef.once('value')
     .then((snapshot) => {
       const userData = snapshot.val();
+      console.log("Загруженные данные пользователя:", userData); // Добавляем логирование
       if (userData !== null) {
         userScore = userData.score || 0;
         scoreDisplay.textContent = userScore;
-        upgrade1Purchased = userData.upgrade1Purchased || false;
+        upgrade1Purchased = userData.upgrade1Purchased || false; // Загрузка информации из базы данных
         if (upgrade1Purchased) {
           startAutoclick();
           const upgradeButton = document.getElementById('upgrade1-item');
           upgradeButton.disabled = true;
           upgradeButton.textContent = 'Автокликер куплен успешно';
+        } else {
+          stopAutoclick(); // Добавляем эту строку, чтобы убедиться, что автокликер не активен, если улучшение 1 не приобретено
         }
         const displayName = userData.displayName;
         if (displayName) {
           usernameDisplay.textContent = displayName;
         } else {
-          suggestUsername();
+          // Не вызываем suggestUsername() здесь
         }
       }
     })
     .catch(showAlert);
 }
+
+
 
 function saveScore(score) {
   const user = firebase.auth().currentUser;
@@ -187,6 +197,7 @@ function buyUpgrade(upgradeIndex) {
       userScore -= upgrade.cost;
       scoreDisplay.textContent = userScore;
       upgrade1Purchased = true;
+      console.log("Улучшение 1 приобретено:", upgrade1Purchased); // Добавляем логирование
       startAutoclick();
       updateUpgradeCost(upgradeIndex);
       saveScore(userScore);
@@ -198,6 +209,7 @@ function buyUpgrade(upgradeIndex) {
   }
 }
 
+
 function updateUpgradeCost(upgradeIndex) {
   const upgrade = upgrades[upgradeIndex - 1];
   const upgradeElement = document.getElementById(`upgrade${upgradeIndex}-cost`);
@@ -208,16 +220,9 @@ function startAutoclick() {
   autoclickInterval = setInterval(incrementScore, 1000);
 }
 
-let lastClickTime = 0;
-
-usernameDisplay.addEventListener('click', function() {
-  const currentTime = new Date().getTime();
-  if (currentTime - lastClickTime < 300) {
-    openUsernameEdit();
-  } else {
-    lastClickTime = currentTime;
-  }
-});
+function stopAutoclick() {
+  clearInterval(autoclickInterval);
+}
 
 function openUsernameEdit() {
   const currentDisplayName = usernameDisplay.textContent;
@@ -295,18 +300,121 @@ function showError(message) {
 function clearError() {
   errorMessage.textContent = '';
 }
+// Добавляем обработчик события dblclick к элементу usernameDisplay
+usernameDisplay.addEventListener('dblclick', openUsernameEdit);
 
-function login() {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  firebase.auth().signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      handleLoginSuccess();
-      saveUser(email, password);
-      clearError(); // Очистка сообщения об ошибке при успешном входе
+function openUsernameEdit() {
+  const currentDisplayName = usernameDisplay.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentDisplayName;
+  input.classList.add('editable-input');
+  input.addEventListener('blur', function() {
+    const newDisplayName = input.value.trim();
+    if (newDisplayName !== '') {
+      setUserDisplayName(newDisplayName);
+      usernameDisplay.textContent = newDisplayName;
+      input.disabled = true;
+    }
+  });
+  usernameDisplay.innerHTML = '';
+  usernameDisplay.appendChild(input);
+  input.focus();
+}
+// Ссылки на элементы страницы
+const chatContainer = document.getElementById('chat-container');
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+const leaderboardContainer = document.getElementById('leaderboard-container');
+const leaderboardList = document.getElementById('leaderboard-list');
+
+
+// Показать/скрыть лидерборд
+function toggleLeaderboard() {
+  leaderboardContainer.style.display = leaderboardContainer.style.display === 'none' ? 'block' : 'none';
+}
+
+// Загрузить лидерборд
+function loadLeaderboard() {
+  firebase.database().ref('users').orderByChild('score').limitToLast(10).once('value')
+    .then((snapshot) => {
+      leaderboardList.innerHTML = '';
+      snapshot.forEach((childSnapshot) => {
+        const userData = childSnapshot.val();
+        const username = userData.displayName || 'Anonymous';
+        const score = userData.score || 0;
+        const listItem = document.createElement('li');
+        listItem.textContent = `${username}: ${score}`;
+        leaderboardList.appendChild(listItem);
+      });
     })
     .catch((error) => {
-      showError("Неправильный email или пароль. Пожалуйста, попробуйте снова.");
-      console.error(error); // Логирование ошибки в консоль для отладки
+      console.error('Ошибка загрузки лидерборда:', error);
     });
+}
+
+// Запустить загрузку лидерборда при загрузке страницы
+window.onload = loadLeaderboard;
+// Функция для отправки сообщений в чат
+function sendMessage() {
+  const messageInput = document.getElementById('chat-input');
+  const message = messageInput.value.trim();
+  if (message !== '') {
+    const chatRef = firebase.database().ref('chat');
+    chatRef.push({
+      message: message,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    messageInput.value = ''; // Очистка поля ввода после отправки сообщения
+  }
+}
+// Функция для обновления лидерборда
+function updateLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  const usersRef = firebase.database().ref('users');
+  usersRef.orderByChild('score').limitToLast(10).on('value', function(snapshot) {
+    leaderboardList.innerHTML = ''; // Очистка списка перед обновлением
+    snapshot.forEach(function(childSnapshot) {
+      const userData = childSnapshot.val();
+      const listItem = document.createElement('li');
+      listItem.textContent = userData.displayName + ': ' + userData.score;
+      leaderboardList.appendChild(listItem);
+    });
+  });
+}
+
+
+// Вызов функций для отображения сообщений чата и обновления лидерборда
+displayChatMessages();
+updateLeaderboard();
+function sendMessageToDatabase(messageText, senderName) {
+  const messageRef = firebase.database().ref('chat').push(); // Создаем уникальный ключ для сообщения
+  const timestamp = firebase.database.ServerValue.TIMESTAMP; // Получаем текущую временную метку
+  
+  const messageData = {
+    text: messageText,
+    sender: senderName,
+    timestamp: timestamp
+  };
+
+  messageRef.set(messageData)
+    .then(() => {
+      console.log('Сообщение успешно отправлено в базу данных');
+    })
+    .catch((error) => {
+      console.error('Ошибка при отправке сообщения:', error);
+    });
+}
+// Функция для отображения сообщений чата
+function displayChatMessages() {
+  const chatRef = firebase.database().ref('chat');
+  chatRef.on('child_added', function(snapshot) {
+    const messageData = snapshot.val();
+    const messageElement = document.createElement('div');
+    const senderName = messageData.sender || 'Anonymous'; // Проверяем наличие отправителя
+    messageElement.textContent = `${senderName}: ${messageData.message}`; // Используем свойство message для текста сообщения
+    chatMessages.appendChild(messageElement);
+    // Прокрутка вниз при добавлении нового сообщения для просмотра последних сообщений
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
 }
