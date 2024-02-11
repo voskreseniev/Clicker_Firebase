@@ -467,18 +467,27 @@ function sendMessageToDatabase(messageText, senderName) {
     });
 }
 
-// Функция для отображения сообщений чата
 function displayChatMessages() {
   const chatRef = firebase.database().ref('chat');
   chatRef.on('child_added', function(snapshot) {
     const messageData = snapshot.val();
     const sender = messageData.sender || 'Anonymous';
     const text = messageData.message || '';
+    const messageId = snapshot.key; // Получаем ключ (ID) сообщения
     const messageElement = document.createElement('div');
+    messageElement.setAttribute('id', messageId); // Устанавливаем ID для элемента сообщения
     messageElement.textContent = `${sender}: ${text}`;
     chatMessages.appendChild(messageElement);
     // Прокрутка вниз при добавлении нового сообщения для просмотра последних сообщений
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
-}
 
+  // Обработчик для удаления сообщений из чата при удалении из базы данных
+  chatRef.on('child_removed', function(snapshot) {
+    const messageId = snapshot.key; // Получаем ID удаляемого сообщения
+    const messageToRemove = document.getElementById(messageId); // Находим элемент сообщения по его ID
+    if (messageToRemove) {
+      messageToRemove.remove(); // Удаляем элемент сообщения из интерфейса
+    }
+  });
+}
