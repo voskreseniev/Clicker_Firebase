@@ -321,11 +321,13 @@ function sendMessage() {
 
 
 // Функция для обновления лидерборда
-function updateLeaderboard() {
+function updateLeaderboardRealtime() {
   const leaderboardList = document.getElementById('leaderboard-list');
   const usersRef = firebase.database().ref('users');
-  usersRef.orderByChild('score').limitToLast(10).once('value', function(snapshot) {
-    leaderboardList.innerHTML = ''; // Очистка списка перед обновлением
+  
+  // Добавляем слушатель изменений в базе данных Firebase
+  usersRef.orderByChild('score').limitToLast(10).on('value', function(snapshot) {
+    leaderboardList.innerHTML = ''; // Очищаем список перед обновлением
     const leaderboardData = [];
     snapshot.forEach(function(childSnapshot) {
       leaderboardData.push(childSnapshot.val());
@@ -339,9 +341,13 @@ function updateLeaderboard() {
   });
 }
 
+// Вызываем функцию для обновления лидерборда в реальном времени
+updateLeaderboardRealtime();
+
+
 // Вызов функций для отображения сообщений чата и обновления лидерборда
 displayChatMessages();
-updateLeaderboard();
+
 
 function sendMessageToDatabase(messageText, senderName) {
   const messageRef = firebase.database().ref('chat').push(); // Создаем уникальный ключ для сообщения
