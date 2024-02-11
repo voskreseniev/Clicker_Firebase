@@ -12,6 +12,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Ссылки на элементы страницы
+<<<<<<< HEAD
+=======
+
+>>>>>>> c0d60a7efc877dec25cf680dfd82659b0a35a9c9
 const gameContainer = document.getElementById('game-container');
 const loginContainer = document.getElementById('login-container');
 const emailInput = document.getElementById('email');
@@ -43,6 +47,10 @@ firebase.auth().onAuthStateChanged(function(user) {
     // Если пользователь аутентифицирован, скрываем блок авторизации и отображаем блок игры
     loginContainer.style.display = 'none';
     gameContainer.style.display = 'block';
+<<<<<<< HEAD
+=======
+    loadUserData();
+>>>>>>> c0d60a7efc877dec25cf680dfd82659b0a35a9c9
   }
 });
 

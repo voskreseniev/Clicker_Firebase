@@ -101,6 +101,7 @@ button:hover {
   margin-top: 3%;
   margin-bottom: 15px;
   text-align: center;
+<<<<<<< HEAD
 }
 
 /* Стили для чата */
@@ -157,4 +158,6 @@ button:hover {
 
 #leaderboard-list li {
   margin-bottom: 10px;
+=======
+>>>>>>> c0d60a7efc877dec25cf680dfd82659b0a35a9c9
 }
