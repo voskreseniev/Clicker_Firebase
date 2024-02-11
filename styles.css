@@ -185,3 +185,8 @@ button:focus {
   outline: none;
   border: 1px solid var(--primary-color);
 }
+/* Стили для кнопки улучшения */
+#upgrade-list button:disabled {
+  background-color: #cccccc; /* Серый цвет для кнопки */
+  cursor: not-allowed; /* Изменение курсора при наведении */
+}

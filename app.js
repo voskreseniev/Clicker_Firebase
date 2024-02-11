@@ -201,7 +201,9 @@ function loadUserData() {
         upgrade1Purchased = userData.upgrade1Purchased || false;
         scoreDisplay.textContent = score;
 
+        // Если улучшение 1 куплено, делаем соответствующие изменения в интерфейсе
         if (upgrade1Purchased) {
+          updateUpgradeStatus(1);
           startAutoclick(); // Если улучшение 1 куплено, запускаем автоклик
         }
       })
@@ -212,6 +214,13 @@ function loadUserData() {
 
   }
 }
+
+function updateUpgradeStatus(upgradeIndex) {
+  const upgradeButton = document.querySelector(`#upgrade${upgradeIndex}-item button`);
+  upgradeButton.disabled = true;
+  upgradeButton.textContent = 'Улучшение уже куплено';
+}
+
 
 function saveScore(score) {
   const user = firebase.auth().currentUser;
@@ -261,6 +270,12 @@ function buyUpgrade(upgradeIndex) {
             updateUpgradeCost(upgradeIndex);
             saveScore(userScore);
             userRef.update({ upgrade1Purchased: true }); // Обновляем информацию о покупке улучшения в базе данных
+            
+            // Деактивация кнопки и изменение ее текста
+            const upgradeButton = document.querySelector(`#upgrade${upgradeIndex}-item button`);
+            upgradeButton.disabled = true;
+            upgradeButton.textContent = 'Улучшение уже куплено';
+            
           } else {
             showAlert("Недостаточно монет для покупки улучшения!");
           }
