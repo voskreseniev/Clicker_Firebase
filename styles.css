@@ -172,3 +172,16 @@ button:focus {
 .logout-button {
   background-color: red;
 }
+#chat-input {
+  width: calc(100% - 80px);
+  display: inline-block;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+  resize: none; /* Запрет изменения размера */
+}
+
+#chat-input:focus {
+  outline: none;
+  border: 1px solid var(--primary-color);
+}
