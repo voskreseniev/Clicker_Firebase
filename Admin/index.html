@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Административная панель</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Административная панель</h1>
+
+    <!-- Форма входа для администратора -->
+    <div id="login-container">
+      <h2>Вход для администратора</h2>
+      <input type="email" id="admin-email" placeholder="Email" /><br>
+      <input type="password" id="admin-password" placeholder="Пароль" /><br>
+      <button onclick="adminLogin()">Войти</button>
+    </div>
+
+    <!-- Элементы управления для администратора -->
+    <div id="admin-functions" style="display: none;">
+      <h2>Управление данными и пользователями</h2>
+      <!-- Добавьте кнопки и элементы управления для работы с данными и пользователями -->
+      <button onclick="editChat()">Редактировать чат</button>
+      <button onclick="addPoints()">Добавить очки пользователю</button>
+      <!-- и т.д. -->
+    </div>
+
+    <!-- Чат для администратора -->
+    <div id="admin-chat" style="display: none;">
+      <h2>Чат для администратора</h2>
+      <div id="chat-messages"></div>
+      <textarea id="chat-input" placeholder="Введите сообщение"></textarea>
+      <button onclick="sendMessage()">Отправить</button>
+    </div>
+
+    <button onclick="adminLogout()">Выйти</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

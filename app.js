@@ -91,6 +91,20 @@ function signup() {
   const password = passwordInput.value;
   firebase.auth().createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
+      const user = userCredential.user;
+      // Устанавливаем параметр admin в базе данных только если пользователь не существует
+      firebase.database().ref('users/' + user.uid).once('value')
+        .then((snapshot) => {
+          if (!snapshot.exists()) {
+            firebase.database().ref('users/' + user.uid).set({
+              email: user.email,
+              admin: false // Устанавливаем admin в false при регистрации
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Ошибка при проверке существования пользователя:", error);
+        });
       handleLoginSuccess();
       saveUser(email, password);
       suggestUsername();
@@ -167,8 +181,7 @@ function saveScore(score) {
   const user = firebase.auth().currentUser;
   if (user) {
     const userId = user.uid;
-    firebase.database().ref('users/' + userId).set({
-      displayName: user.displayName,
+    firebase.database().ref('users/' + userId).update({
       score: score,
       upgrade1Purchased: upgrade1Purchased
     });
@@ -231,7 +244,7 @@ function openUsernameEdit() {
   input.addEventListener('blur', function() {
     const newDisplayName = input.value.trim();
     if (newDisplayName !== '') {
-      setUserDisplayName(newDisplayName);
+      setUserDisplayName(newDisplayName); // Вызываем функцию для обновления имени пользователя
       usernameDisplay.textContent = newDisplayName;
       input.disabled = true;
     }
@@ -242,14 +255,38 @@ function openUsernameEdit() {
 }
 
 function setUserDisplayName(displayName) {
-  firebase.auth().currentUser.updateProfile({
-    displayName: displayName
-  }).then(() => {
-    console.log("Имя пользователя успешно изменено:", displayName);
-  }).catch((error) => {
-    console.error("Ошибка при изменении имени пользователя:", error);
-  });
+  const user = firebase.auth().currentUser;
+  if (user) {
+    user.updateProfile({
+      displayName: displayName
+    }).then(() => {
+      console.log("Имя пользователя успешно изменено:", displayName);
+      // Если изменение имени успешно, обновляем его также в базе данных
+      updateUserDisplayNameInDatabase(displayName);
+    }).catch((error) => {
+      console.error("Ошибка при изменении имени пользователя:", error);
+    });
+  } else {
+    console.error('Ошибка: текущий пользователь не определен');
+  }
 }
+
+function updateUserDisplayNameInDatabase(displayName) {
+  const user = firebase.auth().currentUser;
+  if (user) {
+    const userId = user.uid;
+    firebase.database().ref('users/' + userId).update({
+      displayName: displayName
+    }).then(() => {
+      console.log("Имя пользователя успешно обновлено в базе данных:", displayName);
+    }).catch((error) => {
+      console.error("Ошибка при обновлении имени пользователя в базе данных:", error);
+    });
+  } else {
+    console.error('Ошибка: текущий пользователь не определен');
+  }
+}
+
 
 function saveUser(email, password) {
   localStorage.setItem('user', JSON.stringify({ email, password }));
