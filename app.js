@@ -71,13 +71,20 @@ function handleLoginSuccess() {
       .then((snapshot) => {
         const userData = snapshot.val();
         const displayName = userData.displayName || 'Anonymous';
-        usernameDisplay.textContent = ` ${displayName}`;
+        usernameDisplay.textContent = displayName;
+        // После успешной загрузки данных, проверяем наличие улучшения 1 и запускаем автоклик
+        const upgrade1Purchased = userData.upgrade1Purchased || false;
+        if (upgrade1Purchased) {
+          startAutoclick();
+        }
       })
       .catch((error) => {
         console.error('Ошибка загрузки данных пользователя:', error);
       });
-    }
   }
+}
+
+
 
 function showAlert(message) {
   alert(message);
